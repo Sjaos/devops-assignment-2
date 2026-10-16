@@ -1,0 +1,40 @@
+name: Docker Build and Push - Commands
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        env:
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          printf '%s' "$DOCKERHUB_TOKEN" | docker login \
+            --username "$DOCKERHUB_USERNAME" \
+            --password-stdin
+
+      - name: Build Docker Image
+        run: |
+          docker build \
+            --file Dockerfile \
+            --tag "$DOCKERHUB_USERNAME/bse_57_commands:latest" \
+            .
+
+      - name: Push Docker Image
+        run: |
+          docker push "$DOCKERHUB_USERNAME/bse_57_commands:latest"
